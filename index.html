@@ -9,6 +9,7 @@ body { font-family: sans-serif; text-align: center; padding: 20px; }
 button { padding: 10px 20px; font-size: 16px; margin: 5px; }
 input { padding: 8px; font-size: 16px; width: 80%; margin:5px;}
 .hidden { display: none; }
+#timer { font-size: 20px; font-weight: bold; color: red; }
 </style>
 </head>
 <body>
@@ -34,12 +35,17 @@ input { padding: 8px; font-size: 16px; width: 80%; margin:5px;}
 </div>
 
 <div id="quiz" class="hidden">
+<div id="timer">残り: 15秒</div>
 <h3 id="question"></h3>
 <input type="text" id="answerInput" placeholder="答えを入力">
 <br>
 <button onclick="submitAnswer()">回答</button>
 <p id="feedback"></p>
 </div>
+
+<audio id="alarmSound">
+<source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+</audio>
 
 <script>
 
@@ -66,7 +72,8 @@ document.getElementById("addMsg").innerText="入力してください";
 
 let todaySet = [];
 let current = null;
-let timer;
+let timerInterval;
+let timeLeft = 15;
 
 function normalize(text){
 return text.trim().toLowerCase();
@@ -94,7 +101,8 @@ return;
 current = todaySet[Math.floor(Math.random()*todaySet.length)];
 document.getElementById("question").innerText = current.q;
 document.getElementById("answerInput").value="";
-resetTimer();
+document.getElementById("feedback").innerText="";
+startTimer();
 }
 
 function submitAnswer(){
@@ -108,15 +116,27 @@ document.getElementById("feedback").innerText="不正解。正解: "+current.a;
 nextQuestion();
 }
 
-function resetTimer(){
-clearTimeout(timer);
-timer = setTimeout(()=>{
-alert("操作なし！アラーム再発動！");
-},15000);
+function startTimer(){
+clearInterval(timerInterval);
+timeLeft = 15;
+updateTimerDisplay();
+
+timerInterval = setInterval(()=>{
+timeLeft--;
+updateTimerDisplay();
+
+if(timeLeft <= 0){
+clearInterval(timerInterval);
+document.getElementById("alarmSound").play();
+alert("時間切れ！アラーム発動！");
+startTimer();
+}
+},1000);
 }
 
-document.addEventListener("click",resetTimer);
-document.addEventListener("keypress",resetTimer);
+function updateTimerDisplay(){
+document.getElementById("timer").innerText = "残り: " + timeLeft + "秒";
+}
 
 </script>
 
