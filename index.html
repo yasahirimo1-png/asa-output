@@ -9,7 +9,7 @@ body { font-family: sans-serif; text-align: center; padding: 20px; }
 button { padding: 10px 20px; font-size: 16px; margin: 5px; }
 input { padding: 8px; font-size: 16px; width: 80%; margin:5px;}
 .hidden { display: none; }
-#timer { font-size: 20px; font-weight: bold; color: red; }
+#timer { font-size: 22px; font-weight: bold; color: red; margin-bottom:10px; }
 </style>
 </head>
 <body>
@@ -43,7 +43,7 @@ input { padding: 8px; font-size: 16px; width: 80%; margin:5px;}
 <p id="feedback"></p>
 </div>
 
-<audio id="alarmSound">
+<audio id="alarmSound" preload="auto">
 <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
 </audio>
 
@@ -74,6 +74,7 @@ let todaySet = [];
 let current = null;
 let timerInterval;
 let timeLeft = 15;
+let soundEnabled = false;
 
 function normalize(text){
 return text.trim().toLowerCase();
@@ -84,6 +85,17 @@ if(problems.length === 0){
 alert("問題を追加してください");
 return;
 }
+
+/* 🔥 iPhone音許可処理 */
+let sound = document.getElementById("alarmSound");
+sound.play().then(()=>{
+sound.pause();
+sound.currentTime = 0;
+soundEnabled = true;
+}).catch(()=>{
+soundEnabled = false;
+});
+
 let count = parseInt(document.getElementById("count").value);
 todaySet = problems.sort(()=>0.5-Math.random()).slice(0,count);
 document.getElementById("setup").classList.add("hidden");
@@ -127,10 +139,17 @@ updateTimerDisplay();
 
 if(timeLeft <= 0){
 clearInterval(timerInterval);
-document.getElementById("alarmSound").play();
+
+if(soundEnabled){
+let sound = document.getElementById("alarmSound");
+sound.currentTime = 0;
+sound.play();
+}
+
 alert("時間切れ！アラーム発動！");
 startTimer();
 }
+
 },1000);
 }
 
