@@ -6,14 +6,26 @@
 <title>朝アウトプット</title>
 <style>
 body { font-family: sans-serif; text-align: center; padding: 20px; }
-button { padding: 10px 20px; font-size: 16px; margin: 10px; }
-input { padding: 8px; font-size: 16px; width: 80%; }
+button { padding: 10px 20px; font-size: 16px; margin: 5px; }
+input { padding: 8px; font-size: 16px; width: 80%; margin:5px;}
 .hidden { display: none; }
 </style>
 </head>
 <body>
 
 <h2>朝アウトプット</h2>
+
+<div id="addArea">
+<h3>問題を追加</h3>
+<input type="text" id="newQ" placeholder="問題">
+<br>
+<input type="text" id="newA" placeholder="答え">
+<br>
+<button onclick="addProblem()">追加</button>
+<p id="addMsg"></p>
+</div>
+
+<hr>
 
 <div id="setup">
 <label>今日の問題数: </label>
@@ -30,11 +42,27 @@ input { padding: 8px; font-size: 16px; width: 80%; }
 </div>
 
 <script>
-let problems = [
-{q:"日本の首都は？",a:"東京"},
-{q:"2+2は？",a:"4"},
-{q:"富士山の高さは？",a:"3776"}
-];
+
+let problems = JSON.parse(localStorage.getItem("problems")) || [];
+
+function saveProblems(){
+localStorage.setItem("problems", JSON.stringify(problems));
+}
+
+function addProblem(){
+let q = document.getElementById("newQ").value;
+let a = document.getElementById("newA").value;
+
+if(q && a){
+problems.push({q:q,a:a});
+saveProblems();
+document.getElementById("addMsg").innerText="追加しました";
+document.getElementById("newQ").value="";
+document.getElementById("newA").value="";
+}else{
+document.getElementById("addMsg").innerText="入力してください";
+}
+}
 
 let todaySet = [];
 let current = null;
@@ -45,9 +73,14 @@ return text.trim().toLowerCase();
 }
 
 function start(){
+if(problems.length === 0){
+alert("問題を追加してください");
+return;
+}
 let count = parseInt(document.getElementById("count").value);
 todaySet = problems.sort(()=>0.5-Math.random()).slice(0,count);
 document.getElementById("setup").classList.add("hidden");
+document.getElementById("addArea").classList.add("hidden");
 document.getElementById("quiz").classList.remove("hidden");
 nextQuestion();
 }
