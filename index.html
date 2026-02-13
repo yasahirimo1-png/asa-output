@@ -43,13 +43,36 @@ input { padding: 8px; font-size: 16px; width: 80%; margin:5px;}
 <p id="feedback"></p>
 </div>
 
-<audio id="alarmSound" preload="auto">
-<source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
-</audio>
-
 <script>
 
 let problems = JSON.parse(localStorage.getItem("problems")) || [];
+let todaySet = [];
+let current = null;
+let timerInterval;
+let timeLeft = 15;
+let audioContext;
+
+/* 🔊 音を作る関数（確実に鳴る） */
+function playAlarm(){
+if(!audioContext){
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
+}
+let oscillator = audioContext.createOscillator();
+let gainNode = audioContext.createGain();
+
+oscillator.connect(gainNode);
+gainNode.connect(audioContext.destination);
+
+oscillator.type = "square";
+oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+
+gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+
+oscillator.start();
+setTimeout(()=>{
+oscillator.stop();
+},1000);
+}
 
 function saveProblems(){
 localStorage.setItem("problems", JSON.stringify(problems));
@@ -70,12 +93,6 @@ document.getElementById("addMsg").innerText="入力してください";
 }
 }
 
-let todaySet = [];
-let current = null;
-let timerInterval;
-let timeLeft = 15;
-let soundEnabled = false;
-
 function normalize(text){
 return text.trim().toLowerCase();
 }
@@ -86,15 +103,9 @@ alert("問題を追加してください");
 return;
 }
 
-/* 🔥 iPhone音許可処理 */
-let sound = document.getElementById("alarmSound");
-sound.play().then(()=>{
-sound.pause();
-sound.currentTime = 0;
-soundEnabled = true;
-}).catch(()=>{
-soundEnabled = false;
-});
+/* 🔥 iPhone音許可 */
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
+audioContext.resume();
 
 let count = parseInt(document.getElementById("count").value);
 todaySet = problems.sort(()=>0.5-Math.random()).slice(0,count);
@@ -139,14 +150,8 @@ updateTimerDisplay();
 
 if(timeLeft <= 0){
 clearInterval(timerInterval);
-
-if(soundEnabled){
-let sound = document.getElementById("alarmSound");
-sound.currentTime = 0;
-sound.play();
-}
-
-alert("時間切れ！アラーム発動！");
+playAlarm();
+alert("時間切れ！");
 startTimer();
 }
 
