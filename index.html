@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>朝アウトプット</title>
+<style>
+body { font-family: sans-serif; text-align: center; padding: 20px; }
+button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+input { padding: 8px; font-size: 16px; width: 80%; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<h2>朝アウトプット</h2>
+
+<div id="setup">
+<label>今日の問題数: </label>
+<input type="number" id="count" value="3"><br>
+<button onclick="start()">開始</button>
+</div>
+
+<div id="quiz" class="hidden">
+<h3 id="question"></h3>
+<input type="text" id="answerInput" placeholder="答えを入力">
+<br>
+<button onclick="submitAnswer()">回答</button>
+<p id="feedback"></p>
+</div>
+
+<script>
+let problems = [
+{q:"日本の首都は？",a:"東京"},
+{q:"2+2は？",a:"4"},
+{q:"富士山の高さは？",a:"3776"}
+];
+
+let todaySet = [];
+let current = null;
+let timer;
+
+function normalize(text){
+return text.trim().toLowerCase();
+}
+
+function start(){
+let count = parseInt(document.getElementById("count").value);
+todaySet = problems.sort(()=>0.5-Math.random()).slice(0,count);
+document.getElementById("setup").classList.add("hidden");
+document.getElementById("quiz").classList.remove("hidden");
+nextQuestion();
+}
+
+function nextQuestion(){
+if(todaySet.length === 0){
+alert("全問正解！終了！");
+location.reload();
+return;
+}
+current = todaySet[Math.floor(Math.random()*todaySet.length)];
+document.getElementById("question").innerText = current.q;
+document.getElementById("answerInput").value="";
+resetTimer();
+}
+
+function submitAnswer(){
+let userAns = normalize(document.getElementById("answerInput").value);
+if(userAns === normalize(current.a)){
+todaySet = todaySet.filter(p=>p!==current);
+document.getElementById("feedback").innerText="正解！";
+}else{
+document.getElementById("feedback").innerText="不正解。正解: "+current.a;
+}
+nextQuestion();
+}
+
+function resetTimer(){
+clearTimeout(timer);
+timer = setTimeout(()=>{
+alert("操作なし！アラーム再発動！");
+},15000);
+}
+
+document.addEventListener("click",resetTimer);
+document.addEventListener("keypress",resetTimer);
+
+</script>
+
+</body>
+</html>
